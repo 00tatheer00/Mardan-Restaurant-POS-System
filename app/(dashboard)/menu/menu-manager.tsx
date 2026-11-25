@@ -11,6 +11,7 @@ import type { Column } from "@/components/data-table";
 import type { FieldDef } from "@/components/form-fields";
 import { useTable } from "@/lib/hooks/use-table";
 import { formatPKR } from "@/lib/format";
+import { categoryEmoji } from "@/lib/pos/emoji";
 import type { Tables } from "@/types";
 
 type Category = Tables<"categories">;
@@ -44,10 +45,10 @@ const itemSchema = z.object({
   sort_order: sortOrder,
   product_id: z.string().nullable(),
   product_qty_per_unit: z.number({ error: "Enter a number" }).min(0),
-  image_url: z.union([z.url(), z.literal("")]).nullable(),
+  image_url: z.string().nullish(),
   is_active: z.boolean(),
 });
-const itemDefaults = { name: "", category_id: undefined, price: 0, unit: "plate", sort_order: 0, product_id: null, product_qty_per_unit: 0, image_url: "", is_active: true };
+const itemDefaults = { name: "", category_id: undefined, price: 0, unit: "plate", sort_order: 0, product_id: null, product_qty_per_unit: 0, image_url: null, is_active: true };
 const itemFromForm = (v: Record<string, unknown>) => ({
   ...v,
   image_url: v.image_url || null,
@@ -68,12 +69,21 @@ function ItemsTab() {
     { name: "sort_order", label: "Display order", type: "number", step: "1" },
     { name: "product_id", label: "Recipe: uses product", type: "select", nullable: true, options: products.rows.map((p) => ({ value: p.id, label: p.name })), hint: "For production vs sales reconciliation" },
     { name: "product_qty_per_unit", label: "Product qty per unit", type: "number", hint: "e.g. plate = 2 kababs" },
-    { name: "image_url", label: "Image URL (optional)", full: true, placeholder: "https://…" },
+    { name: "image_url", label: "Photo (optional)", type: "upload", bucket: "logos", folder: "menu/", publicUrl: true, full: true },
     { name: "is_active", label: "Show on POS", type: "switch" },
   ];
 
   const columns: Column<MenuItem>[] = [
-    { key: "name", header: "Item", cell: (r) => <span className="font-medium">{r.name}</span> },
+    {
+      key: "name", header: "Item",
+      cell: (r) => (
+        <div className="flex items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {r.image_url ? <img src={r.image_url} alt="" className="size-10 rounded-lg object-cover" /> : <span className="flex size-10 items-center justify-center rounded-lg bg-muted text-lg">{categoryEmoji(cats.byId.get(r.category_id)?.name)}</span>}
+          <span className="font-medium">{r.name}</span>
+        </div>
+      ),
+    },
     { key: "category", header: "Category", cell: (r) => <Badge variant="secondary">{cats.byId.get(r.category_id)?.name ?? "—"}</Badge> },
     { key: "price", header: "Price", className: "text-right tabular-nums", cell: (r) => formatPKR(r.price) },
     { key: "unit", header: "Unit" },

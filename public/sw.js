@@ -1,5 +1,5 @@
 // Kabab House service worker: cache app shell + static assets, serve cached pages offline.
-const VERSION = "kh-v1";
+const VERSION = "kh-v2";
 const key = (url) => url.origin + url.pathname; // ignore ?query (receipt uses ?id=)
 
 self.addEventListener("install", (e) => {
@@ -20,7 +20,18 @@ const put = (k, res) => caches.open(VERSION).then((c) => c.put(k, res));
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   const url = new URL(req.url);
-  if (req.method !== "GET" || url.origin !== self.location.origin) return;
+  if (req.method !== "GET") return;
+  // Menu photos / logo from Supabase Storage: cache-first so they show offline.
+  if (url.pathname.includes("/storage/v1/object/public/")) {
+    e.respondWith(
+      caches.match(req).then((hit) => hit || fetch(req).then((res) => {
+        if (res.ok) put(req, res.clone());
+        return res;
+      })),
+    );
+    return;
+  }
+  if (url.origin !== self.location.origin) return;
 
   if (url.pathname.startsWith("/_next/static/") || /\.(?:png|svg|ico|woff2?|webmanifest)$/.test(url.pathname)) {
     e.respondWith(

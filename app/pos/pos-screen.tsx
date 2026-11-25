@@ -21,6 +21,7 @@ import { calcTotals } from "@/lib/pos/calc";
 import { deviceId, nextInvoiceNo } from "@/lib/pos/invoice";
 import { persistOrder, printReceipt, startOfTodayISO, type Order, type OrderItem } from "@/lib/pos/orders";
 import { formatNum } from "@/lib/format";
+import { categoryEmoji } from "@/lib/pos/emoji";
 import { cn } from "@/lib/utils";
 import type { Profile, Tables } from "@/types";
 import { approveWithPin } from "./actions";
@@ -193,25 +194,27 @@ export function PosScreen({ profile }: { profile: Profile }) {
             ))}
           </div>
           <div className="grid flex-1 auto-rows-min grid-cols-2 gap-3 overflow-y-auto p-4 pt-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-            {loading && Array.from({ length: 12 }, (_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}
+            {loading && Array.from({ length: 12 }, (_, i) => <Skeleton key={i} className="h-44 rounded-2xl" />)}
             {!loading && !visible.length && <p className="col-span-full py-16 text-center text-muted-foreground">No items found</p>}
             {visible.map((i) => (
               <button
                 key={i.id} type="button" onClick={() => cart.add(i)}
-                className="group relative flex h-28 flex-col overflow-hidden rounded-2xl border bg-card text-left shadow-sm transition active:scale-[0.97] hover:shadow-md"
+                className="group relative flex h-44 flex-col overflow-hidden rounded-2xl border bg-card text-left shadow-sm transition active:scale-[0.97] hover:shadow-md"
               >
-                <span className={cn("h-1.5 w-full bg-gradient-to-r", color.get(i.category_id))} />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                {i.image_url && <img src={i.image_url} alt="" className="absolute inset-0 size-full object-cover opacity-15" />}
-                <span className="relative flex flex-1 flex-col justify-between p-3">
-                  <span className="line-clamp-2 font-semibold leading-tight">{i.name}</span>
+                <span className={cn("relative flex h-24 w-full shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br", color.get(i.category_id))}>
+                  <span className="text-4xl drop-shadow">{categoryEmoji(cats.byId.get(i.category_id)?.name)}</span>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  {i.image_url && <img src={i.image_url} alt="" loading="lazy" className="absolute inset-0 size-full object-cover transition group-hover:scale-105" onError={(e) => (e.currentTarget.style.display = "none")} />}
+                </span>
+                <span className="relative flex flex-1 flex-col justify-between p-2.5">
+                  <span className="line-clamp-2 text-sm font-semibold leading-tight">{i.name}</span>
                   <span className="flex items-end justify-between">
-                    <span className="text-lg font-bold text-orange-600 tabular-nums dark:text-orange-400">Rs {formatNum(i.price)}</span>
+                    <span className="font-bold text-orange-600 tabular-nums dark:text-orange-400">Rs {formatNum(i.price)}</span>
                     <span className="text-xs text-muted-foreground">{i.unit}</span>
                   </span>
                 </span>
                 {qty.get(i.id) && (
-                  <span className="bg-brand absolute top-3 right-2 flex size-7 items-center justify-center rounded-full text-sm font-bold text-white shadow">{qty.get(i.id)}</span>
+                  <span className="bg-brand absolute top-2 right-2 flex size-7 ring-2 ring-white items-center justify-center rounded-full text-sm font-bold text-white shadow">{qty.get(i.id)}</span>
                 )}
               </button>
             ))}
