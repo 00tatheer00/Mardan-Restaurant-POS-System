@@ -26,6 +26,8 @@ npm run db:push      # applies supabase/migrations + seed.sql (sample menu, raw 
 npm run db:types     # regenerates types/database.ts from the live schema
 ```
 
+**Can't connect on port 5432?** (some networks block it) Open `supabase/setup-all.sql`, copy all, paste into Supabase → **SQL Editor** → **Run**. It contains every migration + seed and creates profiles for users that already exist (oldest = owner). Run it only once, on an empty project.
+
 Then in the Supabase dashboard:
 1. **Authentication → Providers → Email**: turn **off** "Allow new users to sign up".
 2. **Authentication → Users → Add user**: create the owner (email + password, auto-confirm). **The first user ever created becomes Owner.**
