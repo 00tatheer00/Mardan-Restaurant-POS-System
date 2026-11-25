@@ -57,7 +57,7 @@ begin
       join menu_items mi on mi.id = oi.menu_item_id
       where mi.product_id = v_pr.id and (o.created_at_local at time zone 'Asia/Karachi')::date = v_day;
       v_made := greatest(0, ceil(v_sold) - v_open) + 5 + floor(random() * 15);
-      v_raw := round(v_made / (case when v_pr.name = 'Chicken Tikka' then 7 + random() * 2 else 17.5 + random() * 4 end), 1);
+      v_raw := round((v_made / (case when v_pr.name = 'Chicken Tikka' then 7 + random() * 2 else 17.5 + random() * 4 end))::numeric, 1);
       insert into production_batches (date, raw_item_id, raw_qty, product_id, qty_produced, note, created_by)
       values (v_day, case when v_pr.name = 'Chicken Tikka' then v_chicken else v_qeema end, v_raw, v_pr.id, v_made, 'demo', v_owner);
       if v_d > 0 then
