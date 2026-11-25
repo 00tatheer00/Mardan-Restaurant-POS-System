@@ -228,12 +228,14 @@ export function PosScreen({ profile }: { profile: Profile }) {
         open={pinOpen} onOpenChange={setPinOpen} title="Owner approval"
         description={`Discount above Rs. ${formatNum(settings?.discount_limit)} needs owner PIN`}
         onSubmit={async (pin) => {
-          const ok = await approveWithPin(pin).catch(() => {
-            toast.error("Owner approval needs internet");
+          const res = await approveWithPin(pin).catch(() => ({ error: "Owner approval needs internet" }));
+          if (res.error) {
+            toast.error(res.error);
             return false;
-          });
-          if (ok) { setApproved(totals.discount); setPayOpen(true); }
-          return ok;
+          }
+          setApproved(totals.discount);
+          setPayOpen(true);
+          return true;
         }}
       />
       <OrdersDialog open={ordersOpen} onOpenChange={setOrdersOpen} isOwner={profile.role === "owner"} onOpenHeld={openHeld} />

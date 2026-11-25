@@ -56,7 +56,7 @@ function Report<T>({ name, range, rows, loading, cols, summary }: {
         </Button>
         <Button variant="outline" onClick={() => window.print()}><Printer /> Print / PDF</Button>
       </div>
-      <DataTable data={rows} columns={cols} loading={loading} pageSize={1000} rowKey={(r) => JSON.stringify(r).slice(0, 120)} emptyText="No data in this period" />
+      <DataTable data={rows} columns={cols} loading={loading} pageSize={1000} emptyText="No data in this period" />
     </div>
   );
 }

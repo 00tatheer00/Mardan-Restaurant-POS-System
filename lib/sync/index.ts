@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { PostgrestError } from "@supabase/supabase-js";
-import { cacheRows, ldb, localRows, type Data } from "@/lib/db";
+import { cacheRows, currentUser, ldb, localRows, type Data, type QueueItem } from "@/lib/db";
 import { createClient } from "@/lib/supabase/client";
 
 type SyncState = { pending: number; failed: number; syncing: boolean; lastError?: string };
@@ -9,8 +9,10 @@ export const useSync = create<SyncState>(() => ({ pending: 0, failed: 0, syncing
 export const isNetworkError = (e: { message?: string; code?: string }) => !e.code && /fetch|network|load failed/i.test(e.message ?? "");
 const permanent = (e: PostgrestError) => /^(22|23|42|PGRST2)/.test(e.code ?? "");
 
+const mine = (q: QueueItem, user = currentUser) => !q.user || !user || q.user === user;
+
 export async function refreshStatus(extra: Partial<SyncState> = {}) {
-  const all = await ldb.queue.toArray();
+  const all = (await ldb.queue.toArray()).filter((q) => mine(q));
   const failed = all.filter((q) => q.failed);
   useSync.setState({ pending: all.length - failed.length, failed: failed.length, lastError: failed[0]?.error, ...extra });
 }
@@ -26,7 +28,7 @@ export async function syncNow() {
   useSync.setState({ syncing: true });
   try {
     for (;;) {
-      const item = (await ldb.queue.orderBy("seq").toArray()).find((q) => !q.failed);
+      const item = (await ldb.queue.orderBy("seq").toArray()).find((q) => !q.failed && mine(q, session.user.id));
       if (!item || item.next_try > Date.now()) break;
       const { error } = item.op === "delete"
         ? await supabase.from(item.table as never).delete().eq("id", item.payload.id)
@@ -50,7 +52,7 @@ export async function syncNow() {
 }
 
 export async function retryFailed() {
-  await ldb.queue.toCollection().modify((q) => {
+  await ldb.queue.filter((q) => mine(q)).modify((q) => {
     q.failed = false;
     q.attempts = 0;
     q.next_try = 0;

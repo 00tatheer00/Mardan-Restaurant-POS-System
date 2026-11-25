@@ -53,6 +53,10 @@ export async function saveUser(id: string | null, input: UserInput): Promise<{ e
       id = data.user.id;
     } else {
       if (id === me.id && (v.role !== "owner" || !v.is_active)) return { error: "You can't demote or disable yourself." };
+      if (v.role !== "cashier" && (!v.email || !v.password)) {
+        const { data: cur } = await admin.auth.admin.getUserById(id);
+        if (cur.user?.email?.endsWith("@cashier.local") && (!v.email || !v.password)) return { error: "Owner/Manager need an email and password to sign in." };
+      }
       const { error } = await admin.auth.admin.updateUserById(id, {
         ...(v.email && { email: v.email, email_confirm: true }),
         ...(v.password && { password: v.password }),

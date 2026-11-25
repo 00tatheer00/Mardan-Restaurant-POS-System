@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getProfile } from "@/lib/auth/session";
+import { LocalUser } from "@/components/layout/local-user";
 import { Sidebar } from "@/components/layout/sidebar";
 import { PosScreen } from "./pos-screen";
 
@@ -14,6 +15,7 @@ export default async function PosPage() {
       <div className="min-w-0 flex-1">
         <PosScreen profile={profile} />
       </div>
+      <LocalUser id={profile.id} />
     </div>
   );
 }

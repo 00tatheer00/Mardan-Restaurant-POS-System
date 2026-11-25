@@ -3,7 +3,7 @@ import Dexie, { type Table } from "dexie";
 export type Data = Record<string, unknown> & { id: string };
 export type LocalRow = { table: string; id: string; data: Data };
 export type QueueItem = {
-  seq?: number; table: string; op: "upsert" | "delete"; payload: Data; created_at: number;
+  seq?: number; user?: string; table: string; op: "upsert" | "delete"; payload: Data; created_at: number;
   attempts: number; next_try: number; failed?: boolean; error?: string;
 };
 
@@ -18,6 +18,21 @@ class LocalDB extends Dexie {
 }
 
 export const ldb = new LocalDB();
+
+// Logged-in user on this device. Queue items are tagged so one user's changes never sync under another's login.
+export let currentUser: string | undefined;
+
+/** Returns true when a different user than last time is now using this device (local cache was cleared). */
+export async function setLocalUser(id: string) {
+  currentUser = id;
+  const prev = (await ldb.meta.get("user"))?.value as string | undefined;
+  if (prev === id) return false;
+  await ldb.transaction("rw", ldb.rows, ldb.meta, async () => {
+    if (prev) await ldb.rows.clear();
+    await ldb.meta.put({ key: "user", value: id });
+  });
+  return !!prev;
+}
 
 const scalar = (d: Record<string, unknown>) =>
   Object.fromEntries(Object.entries(d).filter(([, v]) => v === null || typeof v !== "object" || Array.isArray(v))) as Data;
@@ -54,7 +69,7 @@ export async function localSaveMany(table: string, rows: Data[]) {
       const prev = (await ldb.rows.get([table, row.id]))?.data;
       const data = scalar({ ...prev, ...row });
       await ldb.rows.put({ table, id: row.id, data });
-      await ldb.queue.add({ table, op: "upsert", payload: data, created_at: Date.now(), attempts: 0, next_try: 0 });
+      await ldb.queue.add({ user: currentUser, table, op: "upsert", payload: data, created_at: Date.now(), attempts: 0, next_try: 0 });
       saved.push(data);
     }
   });
@@ -69,7 +84,7 @@ export async function localDelete(table: string, ids: string[]) {
   await ldb.transaction("rw", ldb.rows, ldb.queue, async () => {
     for (const id of ids) {
       await ldb.rows.delete([table, id]);
-      await ldb.queue.add({ table, op: "delete", payload: { id }, created_at: Date.now(), attempts: 0, next_try: 0 });
+      await ldb.queue.add({ user: currentUser, table, op: "delete", payload: { id }, created_at: Date.now(), attempts: 0, next_try: 0 });
     }
   });
   window.dispatchEvent(new Event("kh-queue"));

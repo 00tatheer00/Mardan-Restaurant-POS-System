@@ -128,7 +128,7 @@ end $$;
 -- CLEANUP (run when you want to remove all demo data):
 -- delete from order_items where order_id in (select id from orders where device_id = 'demo');
 -- delete from orders where device_id = 'demo';
--- delete from day_closings where created_by is not null and date >= pk_today() - 13;
+-- delete from day_closings where date between pk_today() - 13 and pk_today() - 1 and date < (select min(created_at)::date from orders where device_id <> 'demo' or device_id is null);
 -- delete from production_batches where note = 'demo';
 -- delete from purchases where note = 'demo';
 -- delete from supplier_payments where note = 'demo';

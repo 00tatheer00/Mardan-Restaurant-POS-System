@@ -37,7 +37,7 @@ export function PinDialog({ open, onOpenChange, title, description, onSubmit }: 
             onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
             className="h-14 text-center text-3xl tracking-[0.6em]" placeholder="••••"
           />
-          {error && <p className="text-center text-sm text-destructive">Wrong PIN</p>}
+          {error && <p className="text-center text-sm text-destructive">Not approved</p>}
           <DialogFooter>
             <Button type="submit" disabled={pin.length !== 4 || busy} className="bg-brand w-full text-white">
               {busy && <Loader2 className="animate-spin" />} Approve

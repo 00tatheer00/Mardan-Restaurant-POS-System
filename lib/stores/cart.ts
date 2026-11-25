@@ -38,6 +38,6 @@ export const useCart = create<CartState>()(
       load: (p) => set(p),
       clear: () => set(empty),
     }),
-    { name: "kh-cart", partialize: ({ lines, orderType, tableNo, discount, orderId, invoiceNo }) => ({ lines, orderType, tableNo, discount, orderId, invoiceNo }) },
+    { name: "kh-cart", skipHydration: true, partialize: ({ lines, orderType, tableNo, discount, orderId, invoiceNo }) => ({ lines, orderType, tableNo, discount, orderId, invoiceNo }) },
   ),
 );
