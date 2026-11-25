@@ -1,13 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
-import { LayoutDashboard, ListOrdered, LogOut, Search } from "lucide-react";
+import { ListOrdered, LogOut, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Brand } from "@/components/layout/brand";
 import { SyncPill } from "@/components/layout/sync-pill";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { CartPanel } from "@/components/pos/cart-panel";
@@ -169,7 +167,6 @@ export function PosScreen({ profile }: { profile: Profile }) {
   return (
     <div className="flex h-full flex-col">
       <header className="flex h-14 shrink-0 items-center gap-3 border-b bg-card px-4">
-        <Brand compact />
         <div className="relative w-full max-w-md">
           <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -181,9 +178,6 @@ export function PosScreen({ profile }: { profile: Profile }) {
         <div className="ml-auto flex items-center gap-1">
           <SyncPill />
           <Button variant="ghost" onClick={() => setOrdersOpen(true)}><ListOrdered /> <span className="hidden lg:inline">Orders</span></Button>
-          {profile.role !== "cashier" && (
-            <Button variant="ghost" size="icon" asChild aria-label="Dashboard"><Link href="/dashboard"><LayoutDashboard /></Link></Button>
-          )}
           <ThemeToggle />
           <span className="hidden px-2 text-sm text-muted-foreground xl:inline">{profile.full_name}</span>
           <Button variant="ghost" size="icon" aria-label="Sign out" onClick={() => signOut()}><LogOut /></Button>
