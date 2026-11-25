@@ -32,3 +32,11 @@ insert into suppliers (name, phone) values ('Local Butcher', null), ('Sabzi Mand
 
 insert into expense_categories (name) values
   ('Electricity'), ('Gas'), ('Rent'), ('Repairs'), ('Packaging'), ('Transport'), ('Misc');
+
+-- Sample photos (served from /public/menu)
+update menu_items m set image_url = x.url from (values
+  ('Chapli Kabab', '/menu/chapli-kabab.jpg'), ('Chapli Kabab Plate', '/menu/chapli-kabab.jpg'),
+  ('Seekh Kabab', '/menu/seekh-kabab.jpg'), ('Chicken Tikka', '/menu/chicken-tikka.jpg'),
+  ('Naan', '/menu/naan.jpg'), ('Plain Rice', '/menu/rice.jpg'), ('Raita', '/menu/raita.jpg'),
+  ('Salad', '/menu/salad.jpg'), ('Cold Drink 500ml', '/menu/cold-drink.jpg'), ('Mineral Water 500ml', '/menu/water.jpg')
+) as x(name, url) where m.name = x.name and m.image_url is null;

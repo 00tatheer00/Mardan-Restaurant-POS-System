@@ -1,5 +1,5 @@
 // Kabab House service worker: cache app shell + static assets, serve cached pages offline.
-const VERSION = "kh-v2";
+const VERSION = "kh-v3";
 const key = (url) => url.origin + url.pathname; // ignore ?query (receipt uses ?id=)
 
 self.addEventListener("install", (e) => {
@@ -33,7 +33,7 @@ self.addEventListener("fetch", (e) => {
   }
   if (url.origin !== self.location.origin) return;
 
-  if (url.pathname.startsWith("/_next/static/") || /\.(?:png|svg|ico|woff2?|webmanifest)$/.test(url.pathname)) {
+  if (url.pathname.startsWith("/_next/static/") || /\.(?:png|jpe?g|webp|svg|ico|woff2?|webmanifest)$/.test(url.pathname)) {
     e.respondWith(
       caches.match(req).then((hit) => hit || fetch(req).then((res) => {
         if (res.ok) put(req, res.clone());
